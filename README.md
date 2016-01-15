@@ -5,9 +5,9 @@ Doing mundane tasks in Photoshop can be cumbersome. I have added Helper Scripts 
 ## PowerPngCssExport.jsx
 
 **Install Directions:**
-1.Download Script
-2.Place in your Scripts folder where you have your Photoshop installed. For example: on the Mac it's at /Applications/Adobe Photoshop CS6/Presets/Scripts
-3.Make sure you restart Photoshop after copying the script
+1. Download Script<br>
+2. Place in your Scripts folder where you have your Photoshop installed. For example: on the Mac it's at /Applications/Adobe Photoshop CS6/Presets/Scripts<br>
+3. Make sure you restart Photoshop after copying the script<br/>
 
 **What PowerPngCssExport Does:**
 1. Merges all visible layers
