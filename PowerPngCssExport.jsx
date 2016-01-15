@@ -2,6 +2,7 @@
 
 /*
 Power PNG CSS Export
+By Kurt Suchomel
 
 Automates the process of exporting seperate image layers or groups of images as PNGs.
 1) select layers
@@ -12,11 +13,14 @@ Automates the process of exporting seperate image layers or groups of images as 
 6) export image as transparent PNG
 
 PLUS! 
-Pop-up window displays associated CSS markup for item that you can copy & paste into your CSS file!
+Pop-up window displays associated CSS markup for item!
+...and copies CSS markup text to clipboard to paste into CSS file!
 
-Photoshop Directions
-1) Only show layers you want merged & exported
-2) Run File->Scripts->Power PNG Export
+Directions
+1) Open your PSD file
+2) Only show layers you want merged & exported
+3) Optional: use selection tool to crop or expand selection area
+4) Select the Photoshop file menu: File->Scripts->Power PNG Export
 
 */
 
@@ -43,7 +47,9 @@ try
 {
    docRef.mergeVisibleLayers();
 }
-catch(err) {
+catch(err)
+{
+    alert("Error merging visible layers!")
 }
 
 var newLayer = docRef.activeLayer;
@@ -84,8 +90,13 @@ var cssIndex = imageName.indexOf(".");
 var cssName = imageName.substr(0, cssIndex);
 
 // display CSS markup
-var cssText = "CSS Information" + "\n" + "#" + cssName + "\n{" + "\n\t" + "left:" + tempX + ";\n\t" + "top:" + tempY + ";\n\t" + "width:" + tempWidth + ";\n\t" + "height:" + tempHeight + ";\n\t" + "background-image: url(" + imageName + ");\n}";
+var cssText = "#" + cssName + "\n{" + "\n\t" + "left:" + tempX + ";\n\t" + "top:" + tempY + ";\n\t" + "width:" + tempWidth + ";\n\t" + "height:" + tempHeight + ";\n\t" + "background-image: url(" + imageName + ");\n}";
 var formattedCssText = cssText.split(' px').join('px');
+
+// copy CSS to clipboard
+var sh = app.system("osascript -e 'set the clipboard to \"" + formattedCssText + "\"'"); 
+
+// show just in case you need to copy only a line or two...needs to come after system copy to clipboard
 alert(formattedCssText);
 
 // Create a new document with the correct dimensions and a transparent background
