@@ -13,7 +13,9 @@ Automates the process of exporting seperate image layers or groups of images as 
 6) export image as transparent PNG
 
 PLUS! 
-Pop-up window displays associated CSS markup for item!
+CSS markup is created for item!
+...makes sure only valid file names are used
+...converts underlined file names to camel case for div image id name
 ...and copies CSS markup text to clipboard to paste into CSS file!
 
 Directions
@@ -49,7 +51,8 @@ try
 }
 catch(err)
 {
-    alert("Error merging visible layers!")
+    // sometimes only 1 visible layer...not easy way to get number of layers selected
+    // alert("Error merging visible layers!")
 }
 
 var newLayer = docRef.activeLayer;
@@ -89,40 +92,73 @@ var imageName = stringFileName.substr(searchIndex+1);
 var cssIndex = imageName.indexOf(".");
 var cssName = imageName.substr(0, cssIndex);
 
-// display CSS markup
-var cssText = "#" + cssName + "\n{" + "\n\t" + "left:" + tempX + ";\n\t" + "top:" + tempY + ";\n\t" + "width:" + tempWidth + ";\n\t" + "height:" + tempHeight + ";\n\t" + "background-image: url(" + imageName + ");\n}";
-var formattedCssText = cssText.split(' px').join('px');
+var invalidFileNameChars = /[^A-Za-z0-9_.]/; // any chars except alpha numerics, "_", "."
 
-// copy CSS to clipboard
-var sh = app.system("osascript -e 'set the clipboard to \"" + formattedCssText + "\"'"); 
+// check for valid image file name: no additional special characters!
+if (cssName.match(invalidFileNameChars))
+{
+  alert("Error! Invalid image file name. Use only alpha characters and underlines for file names.");
+}
+else
+{
+    // if "_" are used, then convert cssName to camel case
+    var finalCssName = cssName;
+    var indexOfMatch = cssName.indexOf( "_" );
+    while (indexOfMatch != -1)
+    {
+        // Replace the current instance.
+        var upperChar = finalCssName.substr(indexOfMatch+1, 1);
+        upperChar = upperChar.toUpperCase();
 
-// show just in case you need to copy only a line or two...needs to come after system copy to clipboard
-alert(formattedCssText);
+        finalCssName = finalCssName.substr(0, indexOfMatch) + upperChar + finalCssName.substr(indexOfMatch+upperChar.length+1);
+        
+        // Get the index of any next matching substring.
+        indexOfMatch = finalCssName.indexOf( "_" );
+    }
 
-// Create a new document with the correct dimensions and a transparent background
-var myNewDoc = app.documents.add(tempWidth,tempHeight,72,"exportedLayer", NewDocumentMode.RGB,DocumentFill.TRANSPARENT);
+    // display CSS markup
+    var cssText = "#" + finalCssName + " {\n\t" + "left:" + tempX + ";\n\t" + "top:" + tempY + ";\n\t" + "width:" + tempWidth + ";\n\t" + "height:" + tempHeight + ";\n\t" + "background-image:url(" + imageName + ");\n}";
+    var formattedCssText = cssText.split(' px').join('px');
 
-// Add an empty layer and paste the content of the clipboard inside
-var targetLayer = myNewDoc.artLayers.add();
-myNewDoc.paste();
+    // copy CSS to clipboard
+    var sh = app.system("osascript -e 'set the clipboard to \"" + formattedCssText + "\"'"); 
 
-// Set the opacity
-targetLayer.opacity = newLayer.opacity;
+    // show just in case you need to copy only a line or two...needs to come after system copy to clipboard
+    //alert(formattedCssText);
 
-// Options to export to PNG files
-var options = new ExportOptionsSaveForWeb();
-	options.format = SaveDocumentType.PNG;
-    options.PNG8 = false;
-    options.transparency = true;
-	options.optimized = true;
-    
-// Export Save for Web in the current folder
-myNewDoc.exportDocument(File(fileName),ExportType.SAVEFORWEB, options);
+    // Create a new document with the correct dimensions and a transparent background
+    var myNewDoc = app.documents.add(tempWidth,tempHeight,72,"exportedLayer", NewDocumentMode.RGB,DocumentFill.TRANSPARENT);
 
-// Close the temp document without saving the changes
-myNewDoc.close (SaveOptions.DONOTSAVECHANGES);
+    // Add an empty layer and paste the content of the clipboard inside
+    var targetLayer = myNewDoc.artLayers.add();
+    myNewDoc.paste();
 
-// Remove the temp layer
-newLayer.remove();
+    // Set the opacity
+    targetLayer.opacity = newLayer.opacity;
 
-docRef.activeHistoryState = docRef.historyStates[0]; 
+    // Options to export to PNG files
+    var options = new ExportOptionsSaveForWeb();
+    	options.format = SaveDocumentType.PNG;
+        options.PNG8 = false;
+        options.transparency = true;
+    	options.optimized = true;
+        
+    // Export Save for Web in the current folder
+    try
+    {
+        myNewDoc.exportDocument(File(fileName),ExportType.SAVEFORWEB, options);
+    }
+    catch(err)
+    {
+        // alert("Aborted export...")
+    }
+
+    // Close the temp document without saving the changes
+    myNewDoc.close (SaveOptions.DONOTSAVECHANGES);
+
+    // Remove the temp layer
+    newLayer.remove();
+}
+
+// go back to original state of PSD
+docRef.activeHistoryState = docRef.historyStates[curHistoryStates-1]; 
